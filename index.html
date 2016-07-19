@@ -7,7 +7,7 @@
     <meta name="description" content="">
     <meta name="author" content="">
 
-    <title>Simple Sidebar - Start Bootstrap Template</title>
+    <title>Neighbourhood Map</title>
 
     <!-- Bootstrap Core CSS -->
     <link href="css/bootstrap.min.css" rel="stylesheet">
@@ -15,6 +15,15 @@
     <!-- Custom CSS -->
     <link href="css/simple-sidebar.css" rel="stylesheet">
     <style type="text/css">
+      #sidebar-wrapper {
+        color:#ccc;
+      }
+      .sidebar-brand {
+        text-indent: 20px;
+      }
+      .sidebar-nav {
+        margin-top: 150px !important;
+      }
       html, body, #wrapper, #page-content-wrapper, .container-fluid, .row {
         height: 100%; margin: 0; padding: 0;
       }
@@ -28,33 +37,14 @@
     <div id="wrapper">
         <!-- Sidebar -->
         <div id="sidebar-wrapper">
-            <ul class="sidebar-nav">
-                <li class="sidebar-brand">
-                    <a href="#">
-                        Start Bootstrap
-                    </a>
-                </li>
-                <li>
-                    <a href="#">Dashboard</a>
-                </li>
-                <li>
-                    <a href="#">Shortcuts</a>
-                </li>
-                <li>
-                    <a href="#">Overview</a>
-                </li>
-                <li>
-                    <a href="#">Events</a>
-                </li>
-                <li>
-                    <a href="#">About</a>
-                </li>
-                <li>
-                    <a href="#">Services</a>
-                </li>
-                <li>
-                    <a href="#">Contact</a>
-                </li>
+            <h2 class="sidebar-brand">N-Map</h2>
+            <form class="navbar-form navbar-left" role="search">
+              <div class="form-group">
+                <input type="text" class="form-control" placeholder="Filter" id="filter">
+              </div>
+            </form>
+            <ul class="sidebar-nav" data-bind="foreach: { data: observablePlaces }">
+              <li data-bind="text: $data.place, attr: { id: $index() }, click: processClick"></li>
             </ul>
         </div>
         <!-- /#sidebar-wrapper -->
@@ -75,6 +65,8 @@
 
     <script src="js/jquery.js"></script>
     <script src="js/bootstrap.min.js"></script>
+    <script src="node_modules/knockout/build/output/knockout-latest.js"></script>
+    <script src="node_modules/underscore/underscore-min.js"></script>
 
     <script type="text/javascript">
     var map;
@@ -104,7 +96,7 @@
     var infoWindows = [];
 
     function initMap() {
-      var map = new google.maps.Map(document.getElementById('map'), {
+      map = new google.maps.Map(document.getElementById('map'), {
         center: {lat: 55.752, lng: 37.604},
         zoom: 15
       });
@@ -139,6 +131,21 @@
     function clearMarkers() {
       setMapOnAll(null);
     }
+
+    function processClick() {
+        var i = $.inArray(this, places);
+        if (i < 0) {
+          console.log('Something wet wrong...');
+        }
+        else {
+          infoWindows[i].open(map, markers[i]);
+        }
+    }
+
+    ko.applyBindings({
+      observablePlaces: ko.observableArray(places),
+      processClick: processClick
+    });
 
     </script>
     <script async defer
