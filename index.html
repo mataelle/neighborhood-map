@@ -136,8 +136,20 @@
             return self.filteredPlaces.indexOf(places[i]) > -1;
           };
           self.changeVisibility = function() {
+            visibleMarkers = [];
+            visibleInfoWindows = [];
             for(var i = 0; i < observablePlaces.length; i++){
               ko.applyBindingsToNode(document.getElementById(i.toString()), {'visible': self.checkVisibility(i)});
+              if (self.checkVisibility(i)) {
+                visibleMarkers.push(markers[i]);
+                visibleInfoWindows.push(i);
+              }
+            }
+            closeInfoWindows();
+            clearMarkers();
+            setMapOnAll(visibleMarkers);
+            if (visibleInfoWindows.length < places.length) {
+              showInfoWindows(visibleInfoWindows);
             }
           };
           self.filter = function(data, event) {
@@ -151,20 +163,32 @@
           };
       }
       ko.applyBindings(new placeList());
+      closeInfoWindows();
+    }
+
+    // Showes some info windows.
+    function showInfoWindows(indexes) {
+      for (var i = 0; i < indexes.length; i++) {
+        infoWindows[indexes[i]].open(map, markers[indexes[i]]);
+      }
+    }
+    // Closes all info windows.
+    function closeInfoWindows() {
       for (var i = 0; i < places.length; i++) {
         infoWindows[i].close();
       }
     }
-
     // Sets the map on all markers in the array.
-    function setMapOnAll(map) {
+    function setMapOnAll(markers) {
       for (var i = 0; i < markers.length; i++) {
         markers[i].setMap(map);
       }
     }
     // Removes the markers from the map, but keeps them in the array.
     function clearMarkers() {
-      setMapOnAll(null);
+      for (var i = 0; i < markers.length; i++) {
+        markers[i].setMap(null);
+      }
     }
 
     </script>
