@@ -73,29 +73,53 @@
     var places = [
       {
         'position': {lat: 55.753, lng: 37.621},
-        'place': 'Red Square'
+        'place': 'Red Square',
+        'wiki_title': 'Red_Square'
       },
       {
         'position': {lat: 55.754, lng: 37.614},
-        'place': 'Alexander Garden'
+        'place': 'Alexander Garden',
+        'wiki_title': 'Alexander_Garden'
       },
       {
         'position': {lat: 55.756, lng: 37.614},
-        'place': 'Manege Square'
+        'place': 'Manege Square',
+        'wiki_title': 'Manezhnaya_Square,_Moscow'
       },
       {
         'position': {lat: 55.757, lng: 37.617},
-        'place': 'Starbucks'
+        'place': 'Starbucks',
+        'wiki_title': 'Starbucks'
       },
       {
         'position': {lat: 55.751, lng: 37.597},
-        'place': 'The Arbat'
+        'place': 'The Arbat',
+        'wiki_title': 'Arbat_Street'
       }
     ];
     var observablePlaces = places.slice();
 
     var markers = [];
     var infoWindows = [];
+
+    function fillInfoWindows(i){
+      $.ajax({
+          type: "GET",
+          url: "https://en.wikipedia.org/w/api.php?action=query&format=json&prop=pageimages&titles=" + places[i].wiki_title + "&pithumbsize=200",
+          contentType: "application/json; charset=utf-8",
+          async: false,
+          dataType: "jsonp",
+          success: function (data, textStatus, jqXHR) {
+              key = Object.keys(data.query.pages)[0];
+              src = data.query.pages[key].thumbnail.source;
+              infoWindows[i].setContent("<h4>" + places[i].place + "</h4><img src='" + src + "'>");
+          },
+          error: function (errorMessage) {
+            console.log("Something went wrong.");
+          }
+      });
+
+    }
 
     function initMap() {
       map = new google.maps.Map(document.getElementById('map'), {
@@ -109,10 +133,11 @@
           map: map
         });
         var infowindow = new google.maps.InfoWindow({
-          content: places[i].place
+          content: ''
         });
         markers.push(marker);
         infoWindows.push(infowindow);
+        fillInfoWindows(i);
      }
      for (var i = 0; i < places.length; i++) {
         google.maps.event.addListener(markers[i], 'click', function(i) {
