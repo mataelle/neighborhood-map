@@ -40,11 +40,11 @@
             <h2 class="sidebar-brand">N-Map</h2>
             <form class="navbar-form navbar-left" role="search">
               <div class="form-group">
-                <input type="text" class="form-control" placeholder="Filter" id="filter">
+                <input type="text" class="form-control" placeholder="Filter" id="filter" data-bind="event: { keyup: filter }">
               </div>
             </form>
-            <ul class="sidebar-nav" data-bind="foreach: { data: observablePlaces }">
-              <li data-bind="text: $data.place, attr: { id: $index() }, click: processClick"></li>
+            <ul class="sidebar-nav" data-bind="foreach: observablePlaces">
+              <li data-bind="text: place, attr: { id: $index() }, event: { click: $parent.proccessClick($index()) }, visible: $parent.checkVisibility($index())"></li>
             </ul>
         </div>
         <!-- /#sidebar-wrapper -->
@@ -92,6 +92,8 @@
         'place': 'The Arbat'
       }
     ];
+    var observablePlaces = places.slice();
+
     var markers = [];
     var infoWindows = [];
 
@@ -119,6 +121,39 @@
           };
         }(i));
      }
+
+      function placeList() {
+          var self = this;
+
+          self.observablePlaces = ko.observableArray(observablePlaces);
+          self.filteredPlaces = places;
+
+          self.proccessClick = function(i) {
+            infoWindows[i].open(map, markers[i]);
+          };
+
+          self.checkVisibility = function(i) {
+            return self.filteredPlaces.indexOf(places[i]) > -1;
+          };
+          self.changeVisibility = function() {
+            for(var i = 0; i < observablePlaces.length; i++){
+              ko.applyBindingsToNode(document.getElementById(i.toString()), {'visible': self.checkVisibility(i)});
+            }
+          };
+          self.filter = function(data, event) {
+              text = event.target.value;
+              if (text.length == 0) {
+                  self.filteredPlaces = places.slice();
+              } else {
+                  self.filteredPlaces = ko.utils.arrayFilter(places, function(p) { return p.place.toLowerCase().startsWith(text); });
+              }
+              self.changeVisibility();
+          };
+      }
+      ko.applyBindings(new placeList());
+      for (var i = 0; i < places.length; i++) {
+        infoWindows[i].close();
+      }
     }
 
     // Sets the map on all markers in the array.
@@ -131,21 +166,6 @@
     function clearMarkers() {
       setMapOnAll(null);
     }
-
-    function processClick() {
-        var i = $.inArray(this, places);
-        if (i < 0) {
-          console.log('Something wet wrong...');
-        }
-        else {
-          infoWindows[i].open(map, markers[i]);
-        }
-    }
-
-    ko.applyBindings({
-      observablePlaces: ko.observableArray(places),
-      processClick: processClick
-    });
 
     </script>
     <script async defer
