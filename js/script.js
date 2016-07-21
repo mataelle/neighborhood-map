@@ -28,7 +28,6 @@ var places = [
     wiki_title: 'Arbat_Street'
   }
 ];
-var observablePlaces = places.slice();
 
 var markers = [];
 var infoWindows = [];
@@ -83,69 +82,58 @@ function initMap() {
   for (var i = 0; i < places.length; i++) {
     google.maps.event.addListener(markers[i], 'click', function(i) {
       return function() {
+          map.panTo(markers[i].getPosition())
+          closeInfoWindows();
           infoWindows[i].open(map, markers[i]);
-          if (markers[i].getAnimation() !== null) {
-            markers[i].setAnimation(null);
-          } else {
-            markers[i].setAnimation(google.maps.Animation.BOUNCE);
-          }
+          markers[i].setAnimation(google.maps.Animation.BOUNCE);
+          setTimeout(function(i) { markers[i].setAnimation(null) }, 700, i);
       };
     }(i));
   }
 
-  // list of places view
+  // viewmodel of places list
   function placesModel() {
       var self = this;
-      self.observablePlaces = ko.observableArray(observablePlaces);
-      self.filter = ko.observable(""),
+      self.observablePlaces = ko.observableArray(places);
+      self.filter = ko.observable("");
       self.filteredPlaces = ko.computed(function() {
         var filter = this.filter().toLowerCase();
         if (!filter) {
-            return this.observablePlaces();
+          // show all markers
+          for (var i = 0; i < markers.length; i++) {
+            markers[i].setVisible(true);
+          }
+          return this.observablePlaces();
         } else {
-            return ko.utils.arrayFilter(this.observablePlaces(), function(p) {
-                return ko.utils.stringStartsWith(p.place.toLowerCase(), filter);
-            });
-      }
-    }, this);
-
-      self.proccessClick = function(i) {
-          new google.maps.event.trigger( markers[i], 'click' );
-        // infoWindows[i].open(map, markers[i]);
-      };
-
-      self.checkVisibility = function(i) {
-        return self.filteredPlaces.indexOf(places[i]) > -1;
-      };
-      self.changeVisibility = function() {
-        visibleMarkers = [];
-        visibleInfoWindows = [];
-        for(var i = 0; i < observablePlaces.length; i++){
-          ko.applyBindingsToNode(document.getElementById(i.toString()), {'visible': self.checkVisibility(i)});
-          if (self.checkVisibility(i)) {
-            visibleMarkers.push(markers[i]);
-            visibleInfoWindows.push(i);
+          var stringStartsWith = function (string, startsWith) {
+            string = string || "";
+            if (startsWith.length > string.length)
+                return false;
+            return string.substring(0, startsWith.length) === startsWith;
+          };
+          var filtered =  ko.utils.arrayFilter(this.observablePlaces(), function(p) {
+              return stringStartsWith(p.place.toLowerCase(), filter);
+          });
+          // filter markers
+          clearMarkers();
+          for (var i = 0; i < markers.length; i++) {
+            if (filtered.indexOf(self.observablePlaces()[i]) > -1) {
+              markers[i].setVisible(true);
+            }
           }
+          return filtered;
         }
-        closeInfoWindows();
-        clearMarkers();
-        setMapOnAll(visibleMarkers);
-        if (visibleInfoWindows.length < places.length) {
-          showInfoWindows(visibleInfoWindows);
-        }
-      };
-      self.filter = function(data, event) {
-          text = event.target.value;
-          if (text.length == 0) {
-              self.filteredPlaces = places.slice();
-          } else {
-              self.filteredPlaces = ko.utils.arrayFilter(places, function(p) { return p.place.toLowerCase().startsWith(text); });
-          }
-          self.changeVisibility();
+      }, this);
+
+      self.proccessClick = function(data) {
+        var i = self.observablePlaces.indexOf(data);
+        new google.maps.event.trigger( markers[i], 'click' );
       };
   }
+
   ko.applyBindings(new placesModel());
   closeInfoWindows();
+
 }
 
 // Showes some info windows.
@@ -160,16 +148,10 @@ function closeInfoWindows() {
     infoWindows[i].close();
   }
 }
-// Sets the map on all markers in the array.
-function setMapOnAll(markers) {
-  for (var i = 0; i < markers.length; i++) {
-    markers[i].setVisible(true);
-  }
-}
 // Removes the markers from the map, but keeps them in the array.
 function clearMarkers() {
   for (var i = 0; i < markers.length; i++) {
-    markers[i].setVisible(null);
+    markers[i].setVisible(false);
   }
 }
 

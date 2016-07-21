@@ -29,11 +29,11 @@
         <div id="sidebar-wrapper">
             <form class="navbar-form navbar-left" role="search">
               <div class="form-group">
-                <input type="text" class="form-control" placeholder="Filter" id="filter" data-bind="event: { keyup: filter }">
+                <input type="text" class="form-control" placeholder="Filter" id="filter" data-bind="value: filter, valueUpdate: 'afterkeydown'">
               </div>
             </form>
-            <ul class="sidebar-nav" data-bind="foreach: observablePlaces">
-              <li data-bind="text: place, attr: { id: $index() }, event: { click: $parent.proccessClick($index()) }, visible: $parent.checkVisibility($index())"></li>
+            <ul class="sidebar-nav" data-bind="foreach: filteredPlaces">
+              <li data-bind="text: place, attr: { id: $index() }, click: $parent.proccessClick"></li>
             </ul>
         </div>
         <!-- /#sidebar-wrapper -->
