@@ -14,33 +14,19 @@
 
     <!-- Custom CSS -->
     <link href="css/simple-sidebar.css" rel="stylesheet">
-    <style type="text/css">
-      #sidebar-wrapper {
-        color:#ccc;
-      }
-      .sidebar-brand {
-        text-indent: 20px;
-      }
-      .sidebar-nav {
-        margin-top: 150px !important;
-      }
-      .sidebar-nav li {
-        cursor:pointer;
-      }
-      html, body, #wrapper, #page-content-wrapper, .container-fluid, .row {
-        height: 100%; margin: 0; padding: 0;
-      }
-      #map {
-        height: 100%;
-      }
-    </style>
+    <link href="css/styles.css" rel="stylesheet">
 </head>
 
 <body>
+    <div id="top-bar">
+        <h2>
+            <span class="glyphicon glyphicon-menu-hamburger" id="menu-toggle" aria-hidden="true"></span>
+            <span>N-Map</span>
+        </h2>
+    </div>
     <div id="wrapper">
         <!-- Sidebar -->
         <div id="sidebar-wrapper">
-            <h2 class="sidebar-brand">N-Map</h2>
             <form class="navbar-form navbar-left" role="search">
               <div class="form-group">
                 <input type="text" class="form-control" placeholder="Filter" id="filter" data-bind="event: { keyup: filter }">
@@ -73,7 +59,7 @@
 
     <script src="js/script.js"></script>
     <script async defer
-      src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDnRI9zpSS2YmwuDAiRIaIUzKIefmrRRFo&callback=initMap">
+      src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDnRI9zpSS2YmwuDAiRIaIUzKIefmrRRFo&callback=initMap" onerror="initMapError()">
     </script>
 
 

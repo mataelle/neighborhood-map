@@ -3,29 +3,29 @@ var map;
 // palces used in app
 var places = [
   {
-    'position': {lat: 55.753, lng: 37.621},
-    'place': 'Red Square',
-    'wiki_title': 'Red_Square'
+    position: {lat: 55.753, lng: 37.621},
+    place: 'Red Square',
+    wiki_title: 'Red_Square'
   },
   {
-    'position': {lat: 55.754, lng: 37.614},
-    'place': 'Alexander Garden',
-    'wiki_title': 'Alexander_Garden'
+    position: {lat: 55.754, lng: 37.614},
+    place: 'Alexander Garden',
+    wiki_title: 'Alexander_Garden'
   },
   {
-    'position': {lat: 55.756, lng: 37.614},
-    'place': 'Manege Square',
-    'wiki_title': 'Manezhnaya_Square,_Moscow'
+    position: {lat: 55.756, lng: 37.614},
+    place: 'Manege Square',
+    wiki_title: 'Manezhnaya_Square,_Moscow'
   },
   {
-    'position': {lat: 55.757, lng: 37.617},
-    'place': 'Starbucks',
-    'wiki_title': 'Starbucks'
+    position: {lat: 55.757, lng: 37.617},
+    place: 'Starbucks',
+    wiki_title: 'Starbucks'
   },
   {
-    'position': {lat: 55.751, lng: 37.597},
-    'place': 'The Arbat',
-    'wiki_title': 'Arbat_Street'
+    position: {lat: 55.751, lng: 37.597},
+    place: 'The Arbat',
+    wiki_title: 'Arbat_Street'
   }
 ];
 var observablePlaces = places.slice();
@@ -42,15 +42,18 @@ function fillInfoWindow(i){
             "&pithumbsize=200",
       contentType: "application/json; charset=utf-8",
       async: false,
-      dataType: "jsonp",
-      success: function (data, textStatus, jqXHR) {
-          key = Object.keys(data.query.pages)[0];
-          src = data.query.pages[key].thumbnail.source;
-          infoWindows[i].setContent("<h4>" + places[i].place + "</h4><img src='" + src + "' alt='" +places[i].place+ "'>");
-      },
-      error: function (errorMessage) {
-        console.log("Something went wrong.");
+      dataType: "jsonp"
+  }).done( function (data, textStatus, jqXHR) {
+      key = Object.keys(data.query.pages)[0];
+      if (data.query.pages[key].thumbnail != undefined) {
+        src = data.query.pages[key].thumbnail.source;
+        infoWindows[i].setContent("<h4>" + places[i].place + "</h4><img src='" + src + "' alt='" +places[i].place+ "'>");
       }
+      else {
+        infoWindows[i].setContent("<h4>" + places[i].place + "</h4> <div class='error'>Can't find image.</div>");
+      }
+  }).fail( function (errorMessage) {
+      infoWindows[i].setContent("<h4>" + places[i].place + "</h4> <div class='error'>Can't load image.</div>");
   });
 
 }
@@ -91,11 +94,20 @@ function initMap() {
   }
 
   // list of places view
-  function placeList() {
+  function placesModel() {
       var self = this;
-
       self.observablePlaces = ko.observableArray(observablePlaces);
-      self.filteredPlaces = places;
+      self.filter = ko.observable(""),
+      self.filteredPlaces = ko.computed(function() {
+        var filter = this.filter().toLowerCase();
+        if (!filter) {
+            return this.observablePlaces();
+        } else {
+            return ko.utils.arrayFilter(this.observablePlaces(), function(p) {
+                return ko.utils.stringStartsWith(p.place.toLowerCase(), filter);
+            });
+      }
+    }, this);
 
       self.proccessClick = function(i) {
           new google.maps.event.trigger( markers[i], 'click' );
@@ -132,7 +144,7 @@ function initMap() {
           self.changeVisibility();
       };
   }
-  ko.applyBindings(new placeList());
+  ko.applyBindings(new placesModel());
   closeInfoWindows();
 }
 
@@ -151,12 +163,21 @@ function closeInfoWindows() {
 // Sets the map on all markers in the array.
 function setMapOnAll(markers) {
   for (var i = 0; i < markers.length; i++) {
-    markers[i].setMap(map);
+    markers[i].setVisible(true);
   }
 }
 // Removes the markers from the map, but keeps them in the array.
 function clearMarkers() {
   for (var i = 0; i < markers.length; i++) {
-    markers[i].setMap(null);
+    markers[i].setVisible(null);
   }
 }
+
+function initMapError() {
+  console.log('Failed to load map');
+}
+
+$("#menu-toggle").click(function(e) {
+    e.preventDefault();
+    $("#wrapper").toggleClass("toggled");
+});
