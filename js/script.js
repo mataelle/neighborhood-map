@@ -60,7 +60,7 @@ function fillInfoWindow(i){
 // init map when google api script loaded
 function initMap() {
   map = new google.maps.Map(document.getElementById('map'), {
-    center: {lat: 55.752, lng: 37.604},
+    center: {lat: 55.756, lng: 37.604},
     zoom: 15
   });
 
