@@ -1,0 +1,56 @@
+/* common */
+
+html, body, #wrapper, #page-content-wrapper, .container-fluid, .row {
+  height: 100%; margin: 0; padding: 0;
+}
+
+h2 {
+    margin: 0;
+    padding: 10px;
+}
+
+
+/* top bar */
+
+#top-bar {
+    height: 50px;
+    color:#ccc;
+    background: #000;
+}
+
+#menu-toggle {
+    cursor: pointer;
+}
+
+
+/* side bar */
+
+#sidebar-wrapper {
+    color:#ccc;
+    background: #000;
+    margin-top: 50px;
+    top:0;
+}
+
+#sidebar-wrapper, .sidebar-nav li {
+    border-top: 1px solid #444;
+}
+
+.sidebar-nav li:last-child {
+    border-bottom: 1px solid #444;
+}
+
+.sidebar-nav {
+  margin-top: 50px !important;
+}
+
+.sidebar-nav li {
+  cursor:pointer;
+}
+
+
+/* map */
+
+#map {
+  height: 100%;
+}
