@@ -44,7 +44,7 @@ function fillInfoWindow(i){
       dataType: "jsonp"
   }).done( function (data, textStatus, jqXHR) {
       key = Object.keys(data.query.pages)[0];
-      if (data.query.pages[key].thumbnail != undefined) {
+      if (data.query.pages[key].thumbnail !== undefined) {
         src = data.query.pages[key].thumbnail.source;
         infoWindows[i].setContent("<h4>" + places[i].place + "</h4><img src='" + src + "' alt='" +places[i].place+ "'>");
       }
@@ -79,55 +79,51 @@ function initMap() {
   }
 
   // add click listeners to markers
-  for (var i = 0; i < places.length; i++) {
-    google.maps.event.addListener(markers[i], 'click', function(i) {
+  $.each(markers, function(index, element) {
+    google.maps.event.addListener(element, 'click', function(i) {
       return function() {
-          map.panTo(markers[i].getPosition())
+          map.panTo(markers[i].getPosition());
           closeInfoWindows();
           infoWindows[i].open(map, markers[i]);
           markers[i].setAnimation(google.maps.Animation.BOUNCE);
-          setTimeout(function(i) { markers[i].setAnimation(null) }, 700, i);
+          setTimeout(function(i) { markers[i].setAnimation(null); }, 700, i);
       };
-    }(i));
-  }
+    }(index));
+
+  });
 
   // viewmodel of places list
   function placesModel() {
       var self = this;
       self.observablePlaces = ko.observableArray(places);
-      self.filter = ko.observable("");
+      self.filter = ko.observable('');
       self.filteredPlaces = ko.computed(function() {
+        closeInfoWindows();
+        clearMarkers();
         var filter = this.filter().toLowerCase();
-        if (!filter) {
-          // show all markers
-          for (var i = 0; i < markers.length; i++) {
+        var stringStartsWith = function (string, startsWith) {
+          string = string || "";
+          if (startsWith.length > string.length)
+              return false;
+          return string.substring(0, startsWith.length) === startsWith;
+        };
+        var filtered = ko.utils.arrayFilter(this.observablePlaces(), function(p) {
+            return stringStartsWith(p.place.toLowerCase(), filter);
+        });
+        for (var i = 0; i < markers.length; i++) {
+          if (filtered.indexOf(self.observablePlaces()[i]) > -1) {
             markers[i].setVisible(true);
           }
-          return this.observablePlaces();
-        } else {
-          var stringStartsWith = function (string, startsWith) {
-            string = string || "";
-            if (startsWith.length > string.length)
-                return false;
-            return string.substring(0, startsWith.length) === startsWith;
-          };
-          var filtered =  ko.utils.arrayFilter(this.observablePlaces(), function(p) {
-              return stringStartsWith(p.place.toLowerCase(), filter);
-          });
-          // filter markers
-          clearMarkers();
-          for (var i = 0; i < markers.length; i++) {
-            if (filtered.indexOf(self.observablePlaces()[i]) > -1) {
-              markers[i].setVisible(true);
-            }
-          }
-          return filtered;
         }
+        return filtered;
       }, this);
 
       self.proccessClick = function(data) {
         var i = self.observablePlaces.indexOf(data);
-        new google.maps.event.trigger( markers[i], 'click' );
+        google.maps.event.trigger( markers[i], 'click' );
+      };
+      self.toggleListPanel = function(data) {
+        $("#wrapper").toggleClass("toggled");
       };
   }
 
@@ -136,12 +132,6 @@ function initMap() {
 
 }
 
-// Showes some info windows.
-function showInfoWindows(indexes) {
-  for (var i = 0; i < indexes.length; i++) {
-    infoWindows[indexes[i]].open(map, markers[indexes[i]]);
-  }
-}
 // Closes all info windows.
 function closeInfoWindows() {
   for (var i = 0; i < places.length; i++) {
@@ -156,10 +146,6 @@ function clearMarkers() {
 }
 
 function initMapError() {
-  console.log('Failed to load map');
+  $('#map').text('');
+  $('#map').append('<h2 style="padding-top:70px; text-align:center;">Failed to load map.</h2>');
 }
-
-$("#menu-toggle").click(function(e) {
-    e.preventDefault();
-    $("#wrapper").toggleClass("toggled");
-});
